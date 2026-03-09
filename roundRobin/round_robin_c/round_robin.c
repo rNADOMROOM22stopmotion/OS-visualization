@@ -254,6 +254,13 @@ int main(int argc, char* argv[]) {
         printf("%s\n\n", gantt_buf);
         
         printf("--- Process Execution Details ---\n");
+        
+        FILE *csv_file = fopen("processes_data.csv", "w");
+        if (csv_file != NULL) {
+            fprintf(csv_file, "PID,Arrival_Time,Burst_Time,Completion_Time,Turnaround_Time,Waiting_Time\n");
+        } else {
+            printf("\nWarning: Could not open processes_data.csv for writing.\n");
+        }
         printf("PID\tArrival\tBurst\tCompletion\tTAT\tWT\n");
         printf("------------------------------------------------------------\n");
         
@@ -270,11 +277,26 @@ int main(int argc, char* argv[]) {
                 
             avg_tat += all_processes[i].turn_around_time;
             avg_wt += all_processes[i].waiting_time;
+            
+            if (csv_file != NULL) {
+                fprintf(csv_file, "%d,%d,%d,%d,%d,%d\n",
+                    all_processes[i].pid, 
+                    all_processes[i].arrival_time, 
+                    all_processes[i].burst_time,
+                    all_processes[i].completion_time,
+                    all_processes[i].turn_around_time,
+                    all_processes[i].waiting_time);
+            }
         }
         
         printf("------------------------------------------------------------\n");
         printf("Average TAT: %.2f\n", avg_tat / total_processes);
         printf("Average WT: %.2f\n", avg_wt / total_processes);
+        
+        if (csv_file != NULL) {
+            fclose(csv_file);
+            printf("\nData successfully exported to processes_data.csv\n");
+        }
         
         free(all_processes);
     }
