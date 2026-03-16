@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduling Algorithm Visualizer</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-primary: #e6edf3;
+            --text-secondary: #7d8590;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --card-bg: #161b22;
+            --border: #30363d;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #58a6ff, #a371f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .dropdown-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select {
+            appearance: none;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            transition: var(--transition);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237d8590' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        select:hover, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        .comparison-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .graph-section {
+            animation: fadeIn 1s ease 0.4s both;
+        }
+
+        .graph-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--text-primary);
+            position: relative;
+        }
+        
+        .graph-section h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--accent);
+            margin: 0.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        .graph-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: stretch;
+        }
+
+        .graph-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .graph-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-hover);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .graph-label {
+            background: rgba(48, 54, 61, 0.8);
+            backdrop-filter: blur(4px);
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .graph-image-container {
+            position: relative;
+            padding-top: 2.5rem;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff; /* Charts usually have white backgrounds */
+            min-height: 300px;
+        }
+
+        .graph-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            background-color: var(--card-bg); /* Match card instead of white when loading/error */
+            z-index: 5;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .dropdown-group {
+                width: 100%;
+            }
+            .graph-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Algorithm Comparison</h1>
+        <p class="subtitle">Side-by-side visual analysis of CPU scheduling algorithms</p>
+    </header>
+
+    <div class="controls">
+        <div class="dropdown-group">
+            <label for="process1">Process 1</label>
+            <select id="process1">
+                <option value="FCFS" selected>First Come First Serve (FCFS)</option>
+                <option value="PR">Priority (PR)</option>
+                <option value="RR">Round Robin (RR)</option>
+                <option value="SJF">Shortest Job First (SJF)</option>
+                <option value="SRTF">Shortest Remaining Time First (SRTF)</option>
+            </select>
+        </div>
+        
+        <div class="dropdown-group">
+            <label for="process2">Process 2</label>
+            <select id="process2">
+                <option value="FCFS">First Come First Serve (FCFS)</option>
+                <option value="PR">Priority (PR)</option>
+                <option value="RR">Round Robin (RR)</option>
+                <option value="SJF" selected>Shortest Job First (SJF)</option>
+                <option value="SRTF">Shortest Remaining Time First (SRTF)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="comparison-grid">
+        <!-- Turnaround & Waiting Time Chart -->
+        <div class="graph-section">
+            <h2>Turnaround & Waiting Time</h2>
+            <div class="graph-row">
+                <div class="graph-card">
+                    <div class="graph-label label-p1">FCFS</div>
+                    <div class="graph-image-container">
+                        <img id="img-p1-tat-wt" src="FCFS/tat_wt_chart.png" alt="FCFS TAT & WT Chart">
+                    </div>
+                </div>
+                <div class="graph-card">
+                    <div class="graph-label label-p2">SJF</div>
+                    <div class="graph-image-container">
+                        <img id="img-p2-tat-wt" src="SJF/tat_wt_chart.png" alt="SJF TAT & WT Chart">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Lifespan -->
+        <div class="graph-section">
+            <h2>Process Lifespan (Gantt-like)</h2>
+            <div class="graph-row">
+                <div class="graph-card">
+                    <div class="graph-label label-p1">FCFS</div>
+                    <div class="graph-image-container">
+                        <img id="img-p1-lifespan" src="FCFS/process_lifespan.png" alt="FCFS Process Lifespan">
+                    </div>
+                </div>
+                <div class="graph-card">
+                    <div class="graph-label label-p2">SJF</div>
+                    <div class="graph-image-container">
+                        <img id="img-p2-lifespan" src="SJF/process_lifespan.png" alt="SJF Process Lifespan">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Burst vs TAT Scatter -->
+        <div class="graph-section">
+            <h2>Burst Time vs Turnaround Time</h2>
+            <div class="graph-row">
+                <div class="graph-card">
+                    <div class="graph-label label-p1">FCFS</div>
+                    <div class="graph-image-container">
+                        <img id="img-p1-scatter" src="FCFS/burst_vs_tat_scatter.png" alt="FCFS Scatter Plot">
+                    </div>
+                </div>
+                <div class="graph-card">
+                    <div class="graph-label label-p2">SJF</div>
+                    <div class="graph-image-container">
+                        <img id="img-p2-scatter" src="SJF/burst_vs_tat_scatter.png" alt="SJF Scatter Plot">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const process1Select = document.getElementById('process1');
+    const process2Select = document.getElementById('process2');
+    
+    // Image IDs
+    const imgSet1 = {
+        tat: document.getElementById('img-p1-tat-wt'),
+        lifespan: document.getElementById('img-p1-lifespan'),
+        scatter: document.getElementById('img-p1-scatter')
+    };
+    
+    const imgSet2 = {
+        tat: document.getElementById('img-p2-tat-wt'),
+        lifespan: document.getElementById('img-p2-lifespan'),
+        scatter: document.getElementById('img-p2-scatter')
+    };
+
+    // Label Elements
+    const labelsP1 = document.querySelectorAll('.label-p1');
+    const labelsP2 = document.querySelectorAll('.label-p2');
+
+    function updateGraphs() {
+        const p1 = process1Select.value;
+        const p2 = process2Select.value;
+
+        // Update Labels
+        labelsP1.forEach(label => label.textContent = p1);
+        labelsP2.forEach(label => label.textContent = p2);
+
+        // Update image sources
+        imgSet1.tat.src = `${p1}/tat_wt_chart.png`;
+        imgSet1.lifespan.src = `${p1}/process_lifespan.png`;
+        imgSet1.scatter.src = `${p1}/burst_vs_tat_scatter.png`;
+        
+        imgSet2.tat.src = `${p2}/tat_wt_chart.png`;
+        imgSet2.lifespan.src = `${p2}/process_lifespan.png`;
+        imgSet2.scatter.src = `${p2}/burst_vs_tat_scatter.png`;
+    }
+
+    // Add event listeners
+    process1Select.addEventListener('change', updateGraphs);
+    process2Select.addEventListener('change', updateGraphs);
+
+    // Initial call
+    updateGraphs();
+</script>
+</body>
+</html>
