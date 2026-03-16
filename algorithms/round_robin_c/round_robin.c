@@ -255,11 +255,11 @@ int main(int argc, char* argv[]) {
         
         printf("--- Process Execution Details ---\n");
         
-        FILE *csv_file = fopen("processes_data.csv", "w");
+        FILE *csv_file = fopen("RR.csv", "w");
         if (csv_file != NULL) {
             fprintf(csv_file, "PID,Arrival_Time,Burst_Time,Completion_Time,Turnaround_Time,Waiting_Time\n");
         } else {
-            printf("\nWarning: Could not open processes_data.csv for writing.\n");
+            printf("\nWarning: Could not open RR.csv for writing.\n");
         }
         printf("PID\tArrival\tBurst\tCompletion\tTAT\tWT\n");
         printf("------------------------------------------------------------\n");
@@ -295,7 +295,7 @@ int main(int argc, char* argv[]) {
         
         if (csv_file != NULL) {
             fclose(csv_file);
-            printf("\nData successfully exported to processes_data.csv\n");
+            printf("\nData successfully exported to RR.csv\n");
         }
         
         free(all_processes);

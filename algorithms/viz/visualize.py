@@ -4,7 +4,7 @@ import os
 import sys
 
 # Constants
-CSV_FILE_PATH = '../round_robin_c/processes_data.csv'
+CSV_FILE_PATH = '../round_robin_c/RR.csv'
 
 def main():
     if not os.path.exists(CSV_FILE_PATH):
